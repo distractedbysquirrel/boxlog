@@ -1,0 +1,145 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Box Log</title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#17233A"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{--bg:#EAEEF2;--ink:#17233A;--mut:#55627A;--line:#C5CEDA;--acc:#F2A900;--dng:#B3261E;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.4 "Avenir Next",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom))}
+main{max-width:720px;margin:0 auto;padding:16px}
+section{display:none}section.on{display:block}
+h2{font-size:1.4rem;margin:.2em 0 .6em}h3{font-size:1.05rem;margin:1.2em 0 .4em}
+p{margin:.4em 0}.mut{color:var(--mut)}
+.fld{position:relative;margin-bottom:12px}
+label{display:block;font-weight:600;margin-bottom:4px}
+input,select{width:100%;min-height:48px;font:inherit;padding:8px 12px;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--acc);outline-offset:1px}
+button{font:inherit;font-weight:600;min-height:48px;padding:8px 16px;border-radius:8px;border:2px solid var(--ink);background:#fff;color:var(--ink)}
+button.pri{background:var(--acc);border-color:var(--acc)}button.dng{color:var(--dng);border-color:var(--dng)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.sg{position:absolute;left:0;right:0;top:100%;z-index:5;background:#fff;border-radius:8px;box-shadow:0 4px 14px #17233a40}
+.sg button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--ink);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;border-radius:0;background:none;color:#fff;min-height:56px;padding:4px}
+nav button.on{background:var(--acc);color:var(--ink)}
+.wrap{overflow-x:auto;margin-top:8px}table{border-collapse:collapse;width:100%;background:#fff;font-size:.9rem}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+tbody tr{cursor:pointer}td img{height:36px;border-radius:4px;vertical-align:middle}
+#pv{max-width:100%;max-height:200px;margin:8px 0;border-radius:8px;display:block}
+#err{color:var(--dng);font-weight:600;min-height:1.4em}
+#banner{background:var(--acc);padding:10px 16px;font-weight:600}
+#toast{position:fixed;left:16px;right:16px;bottom:84px;background:var(--ink);color:#fff;padding:12px 16px;border-radius:8px;z-index:9}
+.si{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.si span{flex:1}.si button{min-height:40px}
+dialog{border:0;border-radius:12px;max-width:420px}
+details{margin-top:16px;background:#fff;padding:10px 14px;border-radius:8px}
+</style></head><body>
+<div id="banner" hidden></div>
+<main>
+<section id="add" class="on"><h2 id="addT">Add a box</h2><form id="f" novalidate></form></section>
+<section id="list"><h2>Boxes</h2>
+ <div class="row"><div style="flex:1"><label for="fl">Project</label><select id="fl"></select></div><div style="flex:1"><label for="fd">Date</label><input type="date" id="fd"></div></div>
+ <p id="tot" class="mut"></p>
+ <div class="wrap"><table><thead><tr><th>Date<th>Project<th>Qty<th>Manufacturer<th>Contents<th>Items<th>Weight<th>Category<th>Photo</thead><tbody id="tb"></tbody></table></div>
+ <div class="row"><button id="cpT">Copy for spreadsheet</button><button id="cpP">Copy as text table</button></div>
+ <p class="mut">Tap a box to edit or delete it.</p></section>
+<section id="sugg"><h2>Suggestions</h2><p class="mut">These fill in as you type. Changing them never changes your box list.</p><div id="sl"></div></section>
+<section id="share"><h2>Backup and handoff</h2>
+ <p>Share saves everything (boxes, suggestions, photos) in one file you can email or put in a shared folder.</p>
+ <div class="row"><button class="pri" id="shBtn">Share</button><button id="imBtn">Import</button></div>
+ <input type="file" id="imFile" accept=".zip,application/zip" hidden>
+ <details><summary>Add this app to your home screen</summary><p><b>iPhone:</b> open in Safari, tap Share, then Add to Home Screen.</p><p><b>Android:</b> open in Chrome, tap the menu, then Install app.</p></details>
+ <details><summary>Editing in a spreadsheet</summary><p>Unzip the file and open boxes.csv or suggestions.csv. Zip it again with the photos folder before importing.</p></details></section>
+</main>
+<dialog id="dlg"><p id="dm"></p><div class="row"><button class="pri" id="bR">Replace</button><button id="bM">Merge</button><button id="bC">Cancel</button></div></dialog>
+<div id="toast" hidden></div>
+<nav><button data-t="add" class="on">Add</button><button data-t="list">Boxes</button><button data-t="sugg">Suggestions</button><button data-t="share">Backup</button></nav>
+<script src="jszip.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const F=['quantity','manufacturer','content','itemCount','weight','category'],SG=['manufacturer','content','category','weight'];
+const LBL={label:'Project label',quantity:'Quantity',manufacturer:'Manufacturer',content:'What’s inside',itemCount:'Items in box',weight:'Weight (for example, 25 lb)',category:'Category'};
+const GN={manufacturer:'Manufacturers',content:'Contents',category:'Categories',weight:'Weights'};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let db,boxes=[],sugg=[],M={},editId=null,photo=null,urls=[];
+const open=()=>new Promise((res,rej)=>{const r=indexedDB.open('boxlog',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('boxes',{keyPath:'id',autoIncrement:true});d.createObjectStore('sugg',{keyPath:'k'});d.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const tx=(s,m,fn)=>new Promise((res,rej)=>{const t=db.transaction(s,m),q=fn(t.objectStore(s));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)});
+const all=s=>tx(s,'readonly',st=>st.getAll()),put=(s,v)=>tx(s,'readwrite',st=>st.put(v)),del=(s,k)=>tx(s,'readwrite',st=>st.delete(k)),clr=s=>tx(s,'readwrite',st=>st.clear());
+const setMeta=(k,v)=>{M[k]=v;return put('meta',{key:k,value:v})};
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
+function show(id){$$('section').forEach(s=>s.classList.toggle('on',s.id===id));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));scrollTo(0,0)}
+$$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+
+$('#f').innerHTML=['label',...F].map(k=>`<div class="fld"><label for="${k}">${LBL[k]}</label><input id="${k}" autocomplete="off"${k=='quantity'||k=='itemCount'?' inputmode="numeric"':''}><div class="sg"></div></div>`).join('')+
+`<div class="fld"><label for="ph">Photo (optional)</label><input type="file" id="ph" accept="image/*"><img id="pv" alt="Box photo" hidden><button type="button" id="rmph" hidden>Remove photo</button></div>
+<p id="err" role="alert"></p><div class="row"><button class="pri" id="save">Save box</button><button type="button" id="cancel" hidden>Cancel</button><button type="button" id="del" class="dng" hidden>Delete box</button></div>`;
+
+SG.forEach(f=>{const i=$('#'+f),b=i.nextElementSibling;
+ i.addEventListener('input',()=>{const v=i.value.trim().toLowerCase();b.innerHTML='';if(!v)return;
+  sugg.filter(s=>s.field===f&&s.value.toLowerCase().includes(v)&&s.value.toLowerCase()!==v).sort((a,c)=>a.value.localeCompare(c.value)).slice(0,6).forEach(s=>{const e=document.createElement('button');e.type='button';e.textContent=s.value;
+   e.onpointerdown=ev=>{ev.preventDefault();SG.concat(['itemCount']).forEach(k=>{if(s.fill&&s.fill[k]!=null&&k!==f)$('#'+k).value=s.fill[k]});i.value=s.value;b.innerHTML=''};b.append(e)})});
+ i.addEventListener('blur',()=>setTimeout(()=>b.innerHTML='',150))});
+
+function setPhoto(b){photo=b;const p=$('#pv');if(p.src)URL.revokeObjectURL(p.src);p.hidden=$('#rmph').hidden=!b;p.removeAttribute('src');if(b)p.src=URL.createObjectURL(b)}
+$('#ph').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const bm=await createImageBitmap(f),s=Math.min(1,1024/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=bm.width*s;c.height=bm.height*s;c.getContext('2d').drawImage(bm,0,0,c.width,c.height);setPhoto(await new Promise(r=>c.toBlob(r,'image/jpeg',.8)))}catch{$('#err').textContent='That photo could not be loaded. Try a different one.'}e.target.value=''};
+$('#rmph').onclick=()=>setPhoto(null);
+
+function resetForm(){F.forEach(k=>$('#'+k).value='');$('#label').value=M.label||'';setPhoto(null);editId=null;$('#err').textContent='';$('#addT').textContent='Add a box';$('#cancel').hidden=$('#del').hidden=true}
+function startEdit(id){const b=boxes.find(x=>x.id==id);if(!b)return;resetForm();editId=b.id;['label',...F].forEach(k=>$('#'+k).value=b[k]);setPhoto(b.photo||null);$('#addT').textContent='Edit box';$('#cancel').hidden=$('#del').hidden=false;show('add')}
+$('#cancel').onclick=()=>{resetForm();show('list')};
+$('#del').onclick=async()=>{if(confirm('Delete this box? This cannot be undone.')){await del('boxes',editId);resetForm();await refresh();show('list');toast('Box deleted.')}};
+$('#f').onsubmit=async e=>{e.preventDefault();const v={};for(const k of ['label',...F]){v[k]=$('#'+k).value.trim();if(!v[k]){$('#err').textContent=`Please fill in “${LBL[k].replace(' (for example, 25 lb)','')}”.`;$('#'+k).focus();return}}
+ for(const k of ['quantity','itemCount'])if(!/^\d+$/.test(v[k])){$('#err').textContent=`${k=='quantity'?'Quantity':'Items in box'} must be a whole number.`;$('#'+k).focus();return}
+ const old=editId&&boxes.find(b=>b.id==editId);v.date=old?old.date:new Date().toLocaleDateString('en-CA');v.photo=photo;if(old)v.id=old.id;
+ await put('boxes',v);const fill={};['manufacturer','content','category','weight','itemCount'].forEach(k=>fill[k]=v[k]);
+ for(const f of SG)await put('sugg',{k:f+'|'+v[f].toLowerCase(),field:f,value:v[f],fill});
+ const wasNew=!old;if(wasNew)await setMeta('label',v.label);resetForm();await refresh();toast(wasNew?'Box saved.':'Changes saved.');if(!wasNew)show('list');else $('#manufacturer').focus()};
+
+function filtered(){const l=$('#fl').value,d=$('#fd').value;return boxes.filter(b=>(!l||b.label===l)&&(!d||b.date===d))}
+function render(){urls.forEach(URL.revokeObjectURL);urls=[];
+ const ls=[...new Set(boxes.map(b=>b.label))].sort(),cur=$('#fl').value;
+ $('#fl').innerHTML='<option value="">All projects</option>'+ls.map(l=>`<option${l===cur?' selected':''}>${esc(l)}</option>`).join('');
+ const r=filtered();
+ $('#tb').innerHTML=r.map(b=>{let im='';if(b.photo){const u=URL.createObjectURL(b.photo);urls.push(u);im=`<img src="${u}" alt="Box photo">`}
+  return `<tr data-id="${b.id}"><td>${b.date}<td>${esc(b.label)}<td>${esc(b.quantity)}<td>${esc(b.manufacturer)}<td>${esc(b.content)}<td>${esc(b.itemCount)}<td>${esc(b.weight)}<td>${esc(b.category)}<td>${im}`}).join('');
+ $('#tot').textContent=boxes.length?(r.length?`Boxes: ${r.length}. Total quantity: ${r.reduce((a,b)=>a+(+b.quantity||0),0)}.`:'No boxes match these filters.'):'No boxes yet. Tap Add to log your first box.';
+ $('#sl').innerHTML=SG.map(f=>{const g=sugg.filter(s=>s.field===f).sort((a,b)=>a.value.localeCompare(b.value));return g.length?`<h3>${GN[f]}</h3>`+g.map(s=>`<div class="si"><span>${esc(s.value)}</span><button data-r="${esc(s.k)}">Rename</button><button class="dng" data-x="${esc(s.k)}">Remove</button></div>`).join(''):''}).join('')||'<p>Nothing here yet. Suggestions appear after you save a box.</p>';
+ const d=(Date.now()-(M.lastShare||0))/864e5,bn=$('#banner');bn.hidden=!(boxes.length&&d>30);bn.textContent=M.lastShare?'It has been over a month since your last backup. Go to Backup and tap Share.':'Save a backup: go to Backup and tap Share.'}
+async function refresh(){boxes=await all('boxes');sugg=await all('sugg');render()}
+$('#fl').onchange=$('#fd').onchange=render;
+$('#tb').onclick=e=>{const r=e.target.closest('tr');if(r)startEdit(r.dataset.id)};
+$('#sl').onclick=async e=>{const x=e.target.dataset.x,r=e.target.dataset.r;
+ if(x&&confirm('Remove this suggestion? Your box list will not change.')){await del('sugg',x);await refresh()}
+ if(r){const s=sugg.find(q=>q.k===r),n=(prompt('Rename suggestion to:',s.value)||'').trim();if(n&&n!==s.value){await del('sugg',s.k);await put('sugg',{...s,k:s.field+'|'+n.toLowerCase(),value:n});await refresh()}}};
+
+function tableRows(){return[['Date','Project','Qty','Manufacturer','Contents','Items','Weight','Category'],...filtered().map(b=>[b.date,b.label,b.quantity,b.manufacturer,b.content,b.itemCount,b.weight,b.category])]}
+async function copy(t){try{await navigator.clipboard.writeText(t)}catch{const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();document.execCommand('copy');a.remove()}toast('Copied.')}
+$('#cpT').onclick=()=>copy(tableRows().map(r=>r.join('\t')).join('\n'));
+$('#cpP').onclick=()=>{const r=tableRows(),w=r[0].map((_,i)=>Math.max(...r.map(x=>String(x[i]).length)));copy(r.map(x=>x.map((c,i)=>String(c).padEnd(w[i])).join(' | ')).join('\n'))};
+
+const csv=(h,rows)=>'\uFEFF'+[h,...rows.map(r=>h.map(k=>r[k]??''))].map(r=>r.map(v=>/[",\n\r]/.test(v=String(v))?'"'+v.replace(/"/g,'""')+'"':v).join(',')).join('\r\n');
+function parseCSV(t){const r=[];let row=[],c='',q=false;t=t.replace(/^\uFEFF/,'');for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}else if(ch=='"')q=true;else if(ch==','){row.push(c);c=''}else if(ch=='\n'||ch=='\r'){if(ch=='\r'&&t[i+1]=='\n')i++;row.push(c);c='';r.push(row);row=[]}else c+=ch}if(c||row.length){row.push(c);r.push(row)}const h=r.shift()||[];return r.filter(x=>x.length>1||x[0]).map(x=>Object.fromEntries(h.map((k,i)=>[k,x[i]||''])))}
+const BH=['id','date','label','quantity','manufacturer','content','itemCount','weight','category','photo'],SH=['field','value','manufacturer','content','category','weight','itemCount'];
+
+$('#shBtn').onclick=async()=>{if(!boxes.length&&!sugg.length){toast('Nothing to share yet.');return}
+ const z=new JSZip();z.file('boxes.csv',csv(BH,boxes.map(b=>({...b,photo:b.photo?`${b.id}.jpg`:''}))));
+ z.file('suggestions.csv',csv(SH,sugg.map(s=>({field:s.field,value:s.value,...s.fill}))));
+ boxes.forEach(b=>b.photo&&z.file(`photos/${b.id}.jpg`,b.photo));
+ const blob=await z.generateAsync({type:'blob'}),name=`boxlog-${new Date().toLocaleDateString('en-CA')}.zip`,file=new File([blob],name,{type:'application/zip'});
+ try{if(navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],title:'Box Log backup'});else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()}await setMeta('lastShare',Date.now());render()}catch(e){if(e.name!=='AbortError')toast('Sharing did not work. Try again.')}};
+
+$('#imBtn').onclick=()=>$('#imFile').click();
+const ask=m=>new Promise(res=>{$('#dm').textContent=m;const d=$('#dlg');d.showModal();$('#bR').onclick=()=>{d.close();res('r')};$('#bM').onclick=()=>{d.close();res('m')};$('#bC').onclick=()=>{d.close();res('c')};d.oncancel=()=>res('c')});
+$('#imFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{const z=await JSZip.loadAsync(f),bf=z.file('boxes.csv');if(!bf)throw 0;
+  const bx=parseCSV(await bf.async('string')),sf=z.file('suggestions.csv'),sx=sf?parseCSV(await sf.async('string')):[];
+  const c=await ask(`This backup has ${bx.length} boxes. This phone has ${boxes.length}. Replace deletes what is on this phone first. Merge adds only boxes you don’t already have.`);if(c==='c')return;
+  if(c==='r'){await clr('boxes');await clr('sugg');boxes=[]}
+  const sig=b=>[b.date,b.label,b.quantity,b.manufacturer,b.content,b.itemCount,b.weight,b.category].join('|'),have=new Set(boxes.map(sig));let n=0;
+  for(const r of bx){if(have.has(sig(r)))continue;const o={...r};delete o.id;o.photo=null;if(r.photo){const pf=z.file('photos/'+r.photo);if(pf)o.photo=new Blob([await pf.async('arraybuffer')],{type:'image/jpeg'})}await put('boxes',o);n++}
+  for(const s of sx)await put('sugg',{k:s.field+'|'+s.value.toLowerCase(),field:s.field,value:s.value,fill:{manufacturer:s.manufacturer,content:s.content,category:s.category,weight:s.weight,itemCount:s.itemCount}});
+  await refresh();show('list');toast(`Imported ${n} boxes.`)}catch{toast('That file is not a Box Log backup.')}};
+
+(async()=>{db=await open();(await all('meta')).forEach(m=>M[m.key]=m.value);$('#label').value=M.label||'';await refresh();
+ if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})})();
+</script></body></html>
