@@ -1,4 +1,4 @@
-# Box Log (v9)
+# Box Log (version 0.8.3)
 Files: index.html, sw.js, manifest.webmanifest, icon-192.png, icon-512.png.
 
 To publish or update on GitHub Pages:

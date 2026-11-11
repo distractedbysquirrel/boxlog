@@ -39,11 +39,12 @@ img.t{width:44px;height:44px;object-fit:cover;border-radius:6px;display:block}im
 #toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:20px;display:none;z-index:9;max-width:90vw}
 dialog{width:min(92vw,460px);border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);max-height:88vh;overflow:auto}
 dialog label{display:block;margin:8px 0 2px;font-size:14px}dialog input,dialog select{width:100%}dialog .r select{width:auto}
-dialog p,dialog li{margin:6px 0}dialog ol{padding-left:22px}
+dialog p,dialog li{margin:6px 0}.ver{text-align:right;font-size:11px;color:var(--mut);margin-top:2px}dialog ol{padding-left:22px}
 </style></head><body>
 <main id="v"></main><nav id="nav"></nav><dialog id="dlg"></dialog><dialog id="dlg2"></dialog><div id="toast"></div>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const VER='0.8.3'; // Version: bump the last digit with every build
 const uid=()=>crypto.randomUUID(),fmt=n=>String(+n),today=()=>new Date().toLocaleDateString('en-CA');
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v)}catch(e){return ''}};
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2800)};
@@ -67,7 +68,7 @@ const wrap=(inner,id)=>`<div class="sx"><p class="hint">Swipe the table sideways
 function hints(){document.querySelectorAll('.sx').forEach(x=>{const w=x.querySelector('.w'),f=()=>{const m=w.scrollWidth-w.clientWidth;x.classList.toggle('o',m>2);x.classList.toggle('mr',w.scrollLeft<m-2);x.classList.toggle('ml',w.scrollLeft>2)};w.onscroll=f;f()})}
 addEventListener('resize',hints);
 /* ---------- Dialog helper ---------- */
-function ask(title,body,btns){const d=$('#dlg2');d.innerHTML=`<form method="dialog"><h3>${title}</h3>${body}<div class="r">${btns.map(([v,l,c])=>`<button value="${v}" class="${c||''}">${l}</button>`).join('')}</div></form>`;d.returnValue='';d.showModal();
+function ask(title,body,btns,foot){const d=$('#dlg2');d.innerHTML=`<form method="dialog"><h3>${title}</h3>${body}<div class="r">${btns.map(([v,l,c])=>`<button value="${v}" class="${c||''}">${l}</button>`).join('')}</div>${foot?`<div class="ver">${foot}</div>`:''}</form>`;d.returnValue='';d.showModal();
   return new Promise(ok=>d.addEventListener('close',()=>ok(d.returnValue||'cancel'),{once:true}))}
 const TABS=[['pick','Pick Items'],['box','Picked'],['items','Item List'],['lists','Lists'],['bak','Backup']];
 const HELP={
@@ -270,7 +271,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-go],
   if(D.go){if($('#dlg').open)$('#dlg').close();return go(D.go)}
   if(D.sel){P.sel=D.sel;return drawGrid()}
   switch(D.a){
-  case'help':{const[h,b]=HELP[tab];ask('How to use: '+h,b,[['ok','OK']]);break}
+  case'help':{const[h,b]=HELP[tab];ask('How to use: '+h,b,[['ok','OK']],'Version '+VER);break}
   case'mn':case'pl':{const q=parseFloat(P.qty)||1;if(D.a=='pl')P.qty=fmt(Math.floor(q)+1);else if(Math.ceil(q)-1>=1)P.qty=fmt(Math.ceil(q)-1);$('#qt').value=P.qty;upd();break}
   case'save':{const pr=S.projects.find(p=>p.id==P.proj),it=S.items.find(i=>i.id==P.sel);if(!pr||!it||!(+P.qty>0))break;
     const o={id:uid(),savedAt:new Date().toISOString(),pDate:P.date,project:pr.name,category:it.category,item:it.item,mfr:it.mfr,count:it.count,weight:it.weight,photo:it.photo||null,qty:+P.qty};
