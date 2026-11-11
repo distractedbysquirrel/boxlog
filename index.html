@@ -10,145 +10,308 @@
 *{box-sizing:border-box}
 body{margin:0;font:16px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--fg);padding:env(safe-area-inset-top) 0 calc(66px + env(safe-area-inset-bottom))}
 main{padding:12px;max-width:900px;margin:auto}
-input,select,button{font:inherit;color:inherit;border:1px solid var(--line);border-radius:8px;padding:11px;background:var(--card);min-width:0}
-button{background:var(--ac);color:#fff;border:0;cursor:pointer;font-weight:600}
-button.g{background:var(--card);color:var(--fg);border:1px solid var(--line);font-weight:400}
+input,select,button,.btn{font:inherit;color:inherit;border:1px solid var(--line);border-radius:8px;padding:11px;background:var(--card);min-width:0}
+button,.btn{background:var(--ac);color:#fff;border:0;cursor:pointer;font-weight:600;text-align:center}
+button.g,.btn.g{background:var(--card);color:var(--fg);border:1px solid var(--line);font-weight:400}
 button:disabled{opacity:.4}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 .r{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}.r>*{flex:1 1 auto}.r .n{flex:0 0 auto}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.f{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--mut)}.f select,.f input{color:var(--fg);font-size:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 6px}.top h2{margin:0;font-size:21px}
+.hp{width:36px;height:36px;border-radius:50%;padding:0;font-size:19px;font-weight:700;flex:0 0 auto;background:var(--card);color:var(--ac);border:2px solid var(--ac)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{flex:1;background:none;color:var(--mut);border-radius:0;font-size:13px;padding:13px 2px;font-weight:400}
 nav .on{color:var(--ac);font-weight:700;box-shadow:inset 0 3px var(--ac)}
-table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
-tr.s{background:color-mix(in srgb,var(--ac) 22%,transparent)}
-img.t{width:44px;height:44px;object-fit:cover;border-radius:6px;display:block}
-.w{overflow-x:auto}.m{color:var(--mut);font-size:14px}.h{opacity:.55}
-.bn{background:color-mix(in srgb,var(--ac) 18%,transparent);padding:10px;border-radius:8px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}th{white-space:nowrap}
+tr[data-sel]{cursor:pointer}tr.s{background:color-mix(in srgb,var(--ac) 22%,transparent)}
+img.t{width:44px;height:44px;object-fit:cover;border-radius:6px;display:block}img.big{width:120px;max-height:160px;object-fit:contain;border-radius:6px;display:block;margin:6px 0}
+.m{color:var(--mut);font-size:14px}.h{opacity:.55}
+.bn{background:color-mix(in srgb,var(--ac) 18%,transparent);padding:10px;border-radius:8px;margin:8px 0}
+.sx .hint{display:none;margin:6px 0 4px;font-size:14px;font-weight:600;color:var(--ac)}.sx.o .hint{display:block}
+.sw{position:relative}
+.w{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.w::-webkit-scrollbar{height:8px}.w::-webkit-scrollbar-thumb{background:var(--ac);border-radius:4px}
+.sw::before,.sw::after{content:'';position:absolute;top:0;bottom:0;width:40px;pointer-events:none;opacity:0;transition:opacity .2s;display:flex;align-items:center;font-size:34px;font-weight:700;color:var(--ac);z-index:2}
+.sw::after{content:'›';right:0;justify-content:flex-end;padding-right:2px;background:linear-gradient(to right,transparent,var(--bg) 75%)}
+.sw::before{content:'‹';left:0;padding-left:2px;background:linear-gradient(to left,transparent,var(--bg) 75%)}
+.sx.mr .sw::after,.sx.ml .sw::before{opacity:1}
+.li span{font-size:17px}
 #toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:20px;display:none;z-index:9;max-width:90vw}
-dialog{width:min(92vw,460px);border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg)}
-dialog label{display:block;margin:8px 0 2px;font-size:14px}dialog input{width:100%}
+dialog{width:min(92vw,460px);border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);max-height:88vh;overflow:auto}
+dialog label{display:block;margin:8px 0 2px;font-size:14px}dialog input,dialog select{width:100%}dialog .r select{width:auto}
+dialog p,dialog li{margin:6px 0}dialog ol{padding-left:22px}
 </style></head><body>
-<main id="v"></main><nav id="nav"></nav><dialog id="dlg"></dialog><div id="toast"></div>
+<main id="v"></main><nav id="nav"></nav><dialog id="dlg"></dialog><dialog id="dlg2"></dialog><div id="toast"></div>
 <script>
-const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>crypto.randomUUID(),fmt=n=>String(+n),today=()=>new Date().toLocaleDateString('en-CA');
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v)}catch(e){return ''}};
-const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2600)};
-let db,tab='pick',S={projects:[],items:[],picks:[],photos:{}},P={q:'',sel:null,qty:'1',only:null,date:'',dd:'',proj:''},B={proj:'',a:'',b:''};
-const ST=['projects','items','picks','photos'];
-const open=()=>new Promise((ok,no)=>{const r=indexedDB.open('boxlog8',1);r.onupgradeneeded=()=>ST.forEach(s=>r.result.createObjectStore(s,{keyPath:'id'}));r.onsuccess=()=>ok(r.result);r.onerror=no});
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2800)};
+const cmp=(a,b)=>String(a??'').localeCompare(String(b??''),undefined,{numeric:true,sensitivity:'base'});
+const sortN=a=>[...a].sort((x,y)=>cmp(x.name,y.name));
+const itemSort=(x,y)=>cmp(x.category,y.category)||cmp(x.item,y.item)||(x.hist-y.hist)||cmp(x.mfr,y.mfr)||cmp(x.count,y.count)||cmp(x.weight,y.weight);
+const cnt=(c,w)=>[c,w].map(v=>String(v??'').trim()).filter(Boolean).join(' x ');
+// Data: "projects" store holds the Recipients (store name kept so existing data carries over).
+let db,tab='pick',S={projects:[],categories:[],items:[],picks:[],photos:{}},P={q:'',sel:null,qty:'1',only:null,date:'',dd:'',proj:''},B={proj:'',a:'',b:''};
+const ST=['projects','categories','items','picks','photos'];
+const open=()=>new Promise((ok,no)=>{const r=indexedDB.open('boxlog8',2);r.onupgradeneeded=()=>ST.forEach(s=>{if(!r.result.objectStoreNames.contains(s))r.result.createObjectStore(s,{keyPath:'id'})});r.onsuccess=()=>ok(r.result);r.onerror=no});
 const tx=(s,m,f)=>new Promise((ok,no)=>{const t=db.transaction(s,m),r=f(t);t.oncomplete=()=>ok(r&&r.result);t.onerror=no});
 const all=s=>tx(s,'readonly',t=>t.objectStore(s).getAll()),put=(s,o)=>tx(s,'readwrite',t=>t.objectStore(s).put(o)),del=(s,id)=>tx(s,'readwrite',t=>t.objectStore(s).delete(id));
+const putAll=(s,a,clear)=>tx(s,'readwrite',t=>{const o=t.objectStore(s);if(clear)o.clear();a.forEach(x=>o.put(x))});
+async function load(){S.photos={};for(const s of ST){const a=await all(s);if(s=='photos')a.forEach(p=>S.photos[p.id]=p.data);else S[s]=a}}
 const projOK=()=>S.projects.some(p=>p.id==P.proj),lastName=()=>(S.projects.find(p=>p.id==P.proj)||{}).name||'';
 const setDate=()=>{P.date=P.dd=today()};
-const TABS=[['pick','Pick Items'],['box','Picked List'],['items','Item List'],['proj','Projects'],['bak','Backup']];
-function go(t){tab=t;if(t=='box'){B.a=B.b=today();if(!bProjs().includes(B.proj))B.proj=lastName()}if(t=='pick'&&P.date==P.dd)setDate();render()}
+const thumb=id=>id&&S.photos[id]?`<img class="t" src="${S.photos[id]}" alt="">`:'';
+const head=t=>`<div class="top"><h2>${t}</h2><button class="hp" data-a="help" aria-label="Help">?</button></div>`;
+const wrap=(inner,id)=>`<div class="sx"><p class="hint">Swipe the table sideways to see more &#8594;</p><div class="sw"><div class="w"${id?` id="${id}"`:''}>${inner}</div></div></div>`;
+function hints(){document.querySelectorAll('.sx').forEach(x=>{const w=x.querySelector('.w'),f=()=>{const m=w.scrollWidth-w.clientWidth;x.classList.toggle('o',m>2);x.classList.toggle('mr',w.scrollLeft<m-2);x.classList.toggle('ml',w.scrollLeft>2)};w.onscroll=f;f()})}
+addEventListener('resize',hints);
+/* ---------- Dialog helper ---------- */
+function ask(title,body,btns){const d=$('#dlg2');d.innerHTML=`<form method="dialog"><h3>${title}</h3>${body}<div class="r">${btns.map(([v,l,c])=>`<button value="${v}" class="${c||''}">${l}</button>`).join('')}</div></form>`;d.returnValue='';d.showModal();
+  return new Promise(ok=>d.addEventListener('close',()=>ok(d.returnValue||'cancel'),{once:true}))}
+const TABS=[['pick','Pick Items'],['box','Picked'],['items','Item List'],['lists','Lists'],['bak','Backup']];
+const HELP={
+pick:['Pick Items',`<p>Use this tab each time you take boxes from the warehouse.</p><ol>
+<li><b>Recipient:</b> choose who the boxes are for. The app remembers your last choice. To add a new name, choose “+ Add a recipient…”.</li>
+<li><b>Date:</b> it starts on today. Change it if these boxes belong to another day, such as the delivery day. It goes back to today after each save.</li>
+<li><b>Search:</b> type part of any word, such as “rice”. The list gets shorter as you type.</li>
+<li><b>Tap an item</b> in the list to choose it. It turns highlighted.</li>
+<li><b>How many boxes:</b> tap − or +, or type a number. Part of a box is fine, such as 1.5.</li>
+<li>Tap <b>Save</b>. The boxes are added to the Picked tab.</li></ol>
+<p>If the search finds nothing, tap <b>Add new item</b> to add it to the item list.</p>
+<p>If the list is wider than the screen, swipe it sideways to see the rest.</p>`],
+box:['Picked',`<p>This tab shows the boxes that were picked, in the order they were saved.</p><ol>
+<li>Choose the <b>Recipient</b>.</li>
+<li>Set <b>From</b> and <b>To</b> to the dates you want. These are the dates chosen on the Pick Items tab. Both start on today.</li></ol>
+<p>The total number of boxes is shown above the list.</p>
+<p><b>Edit</b> lets you fix the number of boxes, the recipient or the date. If the wrong item was picked, tap <b>Delete</b> and pick it again.</p>
+<p><b>Copy for spreadsheet:</b> then open Excel or Google Sheets, tap one cell and paste.</p>
+<p><b>Copy as fixed width:</b> copies a plain text table to paste into an email or a document.</p>
+<p><b>Send as email:</b> prepares a list with photos and opens your email app. In the new message, press and hold where you type the message, choose <b>Paste</b>, add who it goes to, and send.</p>`],
+items:['Item List',`<p>This is the list of every kind of box in the warehouse.</p>
+<p><b>Add item</b> adds a new kind of box.</p>
+<p><b>Edit</b> changes an item. Boxes already picked are not changed.</p>
+<p><b>Historical</b> hides an item from the Pick Items search, for example when it is no longer stocked. It stays in this list, faded and marked “historical”. Tap <b>Restore</b> to bring it back.</p>
+<p><b>Delete</b> removes an item for good. Boxes already picked keep their details but lose the photo.</p>`],
+lists:['Lists',`<p>This tab keeps two lists of names.</p>
+<p><b>Recipients</b> are who the boxes are for. You choose one on the Pick Items tab.</p>
+<p><b>Categories</b> are kinds of items, such as Rice or Canned Fruit. You choose one when you add an item.</p>
+<p>Type a name and tap <b>Add</b>. You can also <b>Rename</b> or <b>Delete</b> a name. This never changes items or picks already saved. They keep the name they had.</p>`],
+bak:['Backup',`<p>Everything in this app is stored only on this phone. If the phone clears its browser data, it is gone. A backup file keeps it safe.</p>
+<p><b>Share</b> makes one backup file and opens a menu where you can email it or save it to Google Drive, Dropbox and so on. Do this often, and always before handing the app to someone else.</p>
+<p><b>Import</b> loads a backup file. You will be asked whether to <b>replace</b> what is in the app or <b>merge</b> (combine) the two.</p>
+<p>The backup is a zip file. Inside are spreadsheet files that open in Excel, and a folder of photos.</p>
+<p><b>To put the app on your home screen:</b> on iPhone, tap Share, then Add to Home Screen. On Android, tap the menu, then Install app.</p>`]};
+function go(t){tab=t;if(t=='box'){B.a=B.b=today();const n=bProjs();if(!n.includes(B.proj))B.proj=n.includes(lastName())?lastName():(n[0]||'')}if(t=='pick'&&P.date==P.dd)setDate();render()}
 function render(){
   $('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${k==tab?'on':''}" data-go="${k}">${l}</button>`).join('');
   const old=S.picks.length&&(!ls('bk')||Date.now()-new Date(ls('bk'))>30*864e5);
-  $('#v').innerHTML=(old?'<div class="bn">It has been a while. Open Backup and save a copy of your data.</div>':'')+{pick:vPick,box:vBox,items:vItems,proj:vProj,bak:vBak}[tab]();
-  if(tab=='pick'){$('#g').innerHTML=grid();upd()}
+  $('#v').innerHTML=(old?'<div class="bn">It has been a while since the last backup. Open the Backup tab and tap Share.</div>':'')+{pick:vPick,box:vBox,items:vItems,lists:vLists,bak:vBak}[tab]();
+  if(tab=='pick')drawGrid();else hints()
 }
 /* ---------- Pick Items ---------- */
-function vPick(){return `<div class="r"><select id="pj"><option value="">${S.projects.length?'Choose a project…':'No projects yet'}</option>${S.projects.map(p=>`<option value="${p.id}" ${p.id==P.proj?'selected':''}>${esc(p.name)}</option>`).join('')}<option value="+">+ Add a project…</option></select><input type="date" id="pd" value="${P.date}"></div>
+function vPick(){return head('Pick Items')+`<div class="r"><label class="f">Recipient<select id="pj"><option value="">${S.projects.length?'Choose a recipient…':'No recipients yet'}</option>${sortN(S.projects).map(p=>`<option value="${p.id}" ${p.id==P.proj?'selected':''}>${esc(p.name)}</option>`).join('')}<option value="+">+ Add a recipient…</option></select></label><label class="f n">Date<input type="date" id="pd" value="${P.date}"></label></div>
+${projOK()?'':`<div class="bn">${S.projects.length?'Choose who these boxes are for in the Recipient box.':'There are no recipients yet. Add one first.'} <button class="g n" data-go="lists">Add a recipient</button></div>`}
 <input id="sq" placeholder="Search items" value="${esc(P.q)}" style="width:100%" autocomplete="off">
-<div class="r"><button class="g n" data-a="mn">−</button><input id="qt" inputmode="decimal" value="${esc(P.qty)}" style="max-width:90px;text-align:center"><button class="g n" data-a="pl">+</button><button id="sv" data-a="save">Save</button></div>
-<div class="w" id="g"></div>`}
-function vis(){const q=P.q.trim().toLowerCase();return S.items.filter(i=>!i.hist&&(P.only?i.id==P.only:!q||[i.category,i.item,i.mfr,i.count,i.weight].some(v=>String(v).toLowerCase().includes(q))))}
+<div class="r"><button class="g n" data-a="mn" aria-label="One less">−</button><input id="qt" inputmode="decimal" value="${esc(P.qty)}" style="max-width:90px;text-align:center" aria-label="How many boxes"><button class="g n" data-a="pl" aria-label="One more">+</button><button id="sv" data-a="save">Save</button></div>
+${wrap('','g')}`}
+function vis(){const q=P.q.trim().toLowerCase();return S.items.filter(i=>!i.hist&&(P.only?i.id==P.only:!q||[i.category,i.item,i.mfr,cnt(i.count,i.weight),i.count,i.weight].some(v=>String(v??'').toLowerCase().includes(q))))}
 function grid(){const v=vis();if(P.sel&&!v.some(i=>i.id==P.sel))P.sel=null;
   if(!v.length)return `<p class="m">No items found.</p><button data-a="new">Add new item</button>`;
-  return `<table><tr><th>Category<th>Item<th>Manufacturer<th>Count<th>Weight<th></tr>${v.map(i=>`<tr data-sel="${i.id}" class="${i.id==P.sel?'s':''}"><td>${esc(i.category)}<td>${esc(i.item)}<td>${esc(i.mfr)}<td>${esc(i.count)}<td>${esc(i.weight)}<td>${i.photo&&S.photos[i.photo]?`<img class="t" src="${S.photos[i.photo]}">`:''}</tr>`).join('')}</table>`}
+  return `<table><tr><th>Category<th>Item<th>Manufacturer<th>Count<th>Photo</tr>${v.map(i=>`<tr data-sel="${i.id}" class="${i.id==P.sel?'s':''}"><td>${esc(i.category)}<td>${esc(i.item)}<td>${esc(i.mfr)}<td style="white-space:nowrap">${esc(cnt(i.count,i.weight))}<td>${thumb(i.photo)}</tr>`).join('')}</table>`}
+function drawGrid(){const g=$('#g');if(!g)return;g.innerHTML=grid();upd();hints()}
 function upd(){const s=$('#sv');if(s)s.disabled=!(P.sel&&projOK()&&+P.qty>0)}
 /* ---------- Item form ---------- */
-function dItem(it,pre){const x=it||{item:pre||''},d=$('#dlg');
+const mfrs=()=>[...new Set(S.items.map(i=>i.mfr).filter(Boolean))];
+function dItem(it,pre){const x=it?{...it}:{},d=$('#dlg');
+  if(!it&&pre){const l=pre.toLowerCase(),c=S.categories.find(c=>c.name.toLowerCase()==l),m=mfrs().find(m=>m.toLowerCase()==l);if(c)x.category=c.name;else if(m)x.mfr=m;else x.item=pre}
+  const cats=sortN(S.categories).map(c=>c.name);if(x.category&&!cats.includes(x.category))cats.unshift(x.category);
   d.innerHTML=`<form id="fi"><h3>${it?'Edit item':'New item'}</h3>
-<label>Category</label><input name="category" required value="${esc(x.category)}">
+<label>Category</label><div class="r" style="margin:0"><select name="category" id="fc" required><option value="">Choose a category…</option>${cats.map(c=>`<option value="${esc(c)}" ${c==x.category?'selected':''}>${esc(c)}</option>`).join('')}</select><button type="button" class="g n" data-a="ac">Add New Category</button></div>
 <label>Item</label><input name="item" required value="${esc(x.item)}">
 <label>Manufacturer</label><input name="mfr" required list="ml" autocomplete="off" value="${esc(x.mfr)}"><datalist id="ml"></datalist>
 <label>Item Count (pieces in a box)</label><input name="count" required inputmode="decimal" value="${esc(x.count)}">
 <label>Item Weight (one piece, like 8 oz)</label><input name="weight" required value="${esc(x.weight)}">
-<label>Photo ${it&&it.photo?'(choose a new one to replace the current photo)':''}</label>${it&&it.photo&&S.photos[it.photo]?`<img class="t" src="${S.photos[it.photo]}">`:''}<input type="file" name="ph" accept="image/*">
+<label>Photo (optional)</label>${it&&it.photo&&S.photos[it.photo]?`<img class="big" src="${S.photos[it.photo]}" alt=""><p class="m">To use a different photo, choose it here.</p>`:''}<input type="file" name="ph" accept="image/*">
 <div class="r"><button type="button" class="g" data-a="cx">Cancel</button><button>Save item</button></div></form>`;
   d.dataset.id=it?it.id:'';d.showModal()}
-const shrink=f=>new Promise(ok=>{const i=new Image();i.onload=()=>{const s=Math.min(1,600/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.7))};i.src=URL.createObjectURL(f)});
-async function dropPhoto(pid){for(const k of S.picks)if(k.photo==pid){k.photo=null;await put('picks',k)}delete S.photos[pid];await del('photos',pid)}
+const shrink=f=>new Promise(ok=>{const i=new Image();i.onload=()=>{const s=Math.min(1,600/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext('2d').drawImage(i,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.7))};i.onerror=()=>ok(null);i.src=URL.createObjectURL(f)});
+async function dropPhoto(pid){const ch=S.picks.filter(k=>k.photo==pid);ch.forEach(k=>k.photo=null);if(ch.length)await putAll('picks',ch);delete S.photos[pid];await del('photos',pid)}
 document.addEventListener('submit',async e=>{if(e.target.id!='fi')return;e.preventDefault();
-  const d=$('#dlg'),id=d.dataset.id,fd=new FormData(e.target),o={...(S.items.find(i=>i.id==id)||{id:uid(),hist:false,photo:null})};
-  ['category','item','mfr','count','weight'].forEach(k=>o[k]=fd.get(k).trim());
-  const f=fd.get('ph'),np=f&&f.size?await shrink(f):null;
-  if(id&&o.photo){const keep=np?false:confirm('Is the photo still correct?\n\nOK = Yes, keep it\nCancel = No (it will be removed unless you chose a new one)');if(!keep){await dropPhoto(o.photo);o.photo=null}}
+  const d=$('#dlg'),id=d.dataset.id,fd=new FormData(e.target),old=S.items.find(i=>i.id==id),o={...(old||{id:uid(),hist:false,photo:null})};
+  ['category','item','mfr','count','weight'].forEach(k=>o[k]=String(fd.get(k)||'').trim());
+  const f=fd.get('ph');let np=f&&f.size?await shrink(f):null,drop=false;d.close();
+  if(old&&old.photo&&S.photos[old.photo]){const cur=`<img class="big" src="${S.photos[old.photo]}" alt="">`;
+    if(np){const r=await ask('Is the photo still correct?',`<p>This is the current photo. You chose a new one.</p>${cur}<p>If you use the new photo, past picks of this item will keep their details but lose the old photo.</p>`,[['new','Use the new photo'],['keep','Keep the current photo','g'],['cancel','Cancel','g']]);
+      if(r=='cancel')return toast('Nothing was changed');if(r=='keep')np=null;else drop=true}
+    else{const r=await ask('Is the photo still correct?',cur,[['yes','Yes'],['no','No','g'],['cancel','Cancel','g']]);
+      if(r=='cancel')return toast('Nothing was changed');
+      if(r=='no'){for(;;){const r2=await ask('Replace or remove the photo?',`<p>Past picks of this item will keep their details but lose the old photo.</p><label>New photo</label><input type="file" id="nph" accept="image/*">`,[['new','Use the new photo'],['rm','Remove the photo','g'],['cancel','Cancel','g']]);
+        if(r2=='cancel')return toast('Nothing was changed');
+        if(r2=='new'){const ff=$('#nph').files[0];if(!ff){toast('Choose a photo first');continue}np=await shrink(ff)}break}
+        drop=true}}}
+  if(drop){await dropPhoto(old.photo);o.photo=null}
   if(np){const pid=uid();S.photos[pid]=np;await put('photos',{id:pid,data:np});o.photo=pid}
-  const k=S.items.findIndex(i=>i.id==o.id);k<0?S.items.push(o):S.items[k]=o;await put('items',o);d.close();
+  const k=S.items.findIndex(i=>i.id==o.id);k<0?S.items.push(o):S.items[k]=o;await put('items',o);
   if(!id&&tab=='pick'){P.q='';P.only=o.id;P.sel=o.id;P.qty='1'}render()});
-/* ---------- Picked List ---------- */
-const bProjs=()=>[...new Set([...S.projects.map(p=>p.name),...S.picks.map(k=>k.project)])].sort();
-const rows=()=>S.picks.filter(k=>k.project==B.proj&&k.pDate>=B.a&&k.pDate<=B.b).sort((x,y)=>x.pDate.localeCompare(y.pDate)||x.savedAt.localeCompare(y.savedAt));
-const H=['Project Date','Category','Item','Manufacturer','Item Count','Item Weight','Quantity'];
-const cells=k=>[k.pDate,k.category,k.item,k.mfr,k.count,k.weight,fmt(k.qty)].map(v=>String(v).replace(/[\t\r\n]+/g,' '));
-const tsv=()=>[H,...rows().map(cells)].map(r=>r.join('\t')).join('\n');
-const fixed=()=>{const t=[H,...rows().map(cells)],w=H.map((_,i)=>Math.max(...t.map(r=>r[i].length)));return t.map(r=>r.map((c,i)=>c.padEnd(w[i])).join('  ')).join('\n')};
+/* ---------- Picked ---------- */
+const bProjs=()=>[...new Set([...S.projects.map(p=>p.name),...S.picks.map(k=>k.project)])].filter(Boolean).sort(cmp);
+const rows=()=>S.picks.filter(k=>k.project==B.proj&&k.pDate>=B.a&&k.pDate<=B.b).sort((x,y)=>String(x.savedAt).localeCompare(String(y.savedAt)));
+const range=()=>B.a!=B.b;
+const hdr=()=>['Quantity','Category','Item','Manufacturer','Item Count',...(range()?['Date']:[])];
+const cells=k=>[fmt(k.qty),k.category,k.item,k.mfr,cnt(k.count,k.weight),...(range()?[k.pDate]:[])].map(v=>String(v??'').replace(/[\t\r\n]+/g,' '));
+const tsv=()=>[hdr(),...rows().map(cells)].map(r=>r.join('\t')).join('\n');
+const fixed=()=>{const t=[hdr(),...rows().map(cells)],w=t[0].map((_,i)=>Math.max(...t.map(r=>r[i].length)));return t.map(r=>r.map((c,i)=>c.padEnd(w[i])).join('  ').trimEnd()).join('\n')};
 const total=r=>+r.reduce((a,k)=>a+k.qty,0).toFixed(4);
-function vBox(){const r=rows();
-  return `<div class="r"><select id="bp">${bProjs().map(n=>`<option ${n==B.proj?'selected':''}>${esc(n)}</option>`).join('')}</select></div>
-<div class="r"><input type="date" id="ba" value="${B.a}"><input type="date" id="bb" value="${B.b}"></div>
-<p><b>Total quantity: ${fmt(total(r))}</b> <span class="m">(${r.length} picks)</span></p>
+function vBox(){const r=rows(),sd=range(),n=bProjs();
+  return head('Picked')+`<div class="r"><label class="f">Recipient<select id="bp">${n.length?n.map(x=>`<option value="${esc(x)}" ${x==B.proj?'selected':''}>${esc(x)}</option>`).join(''):'<option value="">No picks yet</option>'}</select></label></div>
+<div class="r"><label class="f">From<input type="date" id="ba" value="${B.a}"></label><label class="f">To<input type="date" id="bb" value="${B.b}"></label></div>
+<p><b>Total quantity: ${fmt(total(r))}</b> <span class="m">(${r.length} ${r.length==1?'pick':'picks'})</span></p>
 <div class="r"><button data-a="cs">Copy for spreadsheet</button><button data-a="cf">Copy as fixed width</button><button data-a="em">Send as email</button></div>
-<div class="w"><table><tr><th>Date<th>Category<th>Item<th>Manufacturer<th>Count<th>Weight<th>Qty<th><th></tr>${r.map(k=>`<tr><td>${k.pDate}<td>${esc(k.category)}<td>${esc(k.item)}<td>${esc(k.mfr)}<td>${esc(k.count)}<td>${esc(k.weight)}<td>${fmt(k.qty)}<td>${k.photo&&S.photos[k.photo]?`<img class="t" src="${S.photos[k.photo]}">`:''}<td style="white-space:nowrap"><button class="g n" data-a="ek" data-id="${k.id}">Edit</button> <button class="g n" data-a="dk" data-id="${k.id}">Delete</button></tr>`).join('')}</table></div>`}
-async function out(f){if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return}catch(e){if(e.name=='AbortError')return}}const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;a.click()}
+${r.length?wrap(`<table><tr><th>Quantity<th>Category<th>Item<th>Manufacturer<th>Count${sd?'<th>Date':''}<th>Photo<th></tr>${r.map(k=>`<tr><td>${fmt(k.qty)}<td>${esc(k.category)}<td>${esc(k.item)}<td>${esc(k.mfr)}<td style="white-space:nowrap">${esc(cnt(k.count,k.weight))}${sd?`<td style="white-space:nowrap">${k.pDate}`:''}<td>${thumb(k.photo)}<td style="white-space:nowrap"><button class="g n" data-a="ek" data-id="${k.id}">Edit</button> <button class="g n" data-a="dk" data-id="${k.id}">Delete</button></tr>`).join('')}</table>`):'<p class="m">No picks for this recipient on these dates.</p>'}`}
+async function out(f){if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return true}catch(e){if(e.name=='AbortError')return false}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.append(a);a.click();a.remove();return true}
 const copy=t=>navigator.clipboard.writeText(t).then(()=>toast('Copied'),()=>toast('Could not copy'));
-async function email(){const r=rows();if(!r.length)return toast('Nothing to send');
-  const rng=B.a==B.b?B.a:`${B.a} to ${B.b}`,subj=`${B.proj}, ${rng}`;
-  const html=`<div style="font-family:Arial,sans-serif"><h2>${esc(B.proj)}</h2><p>${rng}. Total quantity: ${fmt(total(r))}</p>`+r.map(k=>`<table style="margin:0 0 14px;border-collapse:collapse"><tr>${k.photo&&S.photos[k.photo]?`<td style="width:120px;padding-right:12px;vertical-align:top"><img src="${S.photos[k.photo]}" width="120" style="display:block"></td>`:''}<td style="vertical-align:top;font-size:15px;line-height:1.5">${[['Category',k.category],['Item',k.item],['Manufacturer',k.mfr],['Item Count',k.count],['Item Weight',k.weight],['Quantity',fmt(k.qty)],['Project Date',k.pDate]].map(([a,b])=>`<b>${a}:</b> ${esc(b)}`).join('<br>')}</td></tr></table>`).join('')+'</div>';
-  try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([fixed()],{type:'text/plain'})})]);toast('Your list is ready. Paste it into the message.');setTimeout(()=>location.href='mailto:?subject='+encodeURIComponent(subj),900)}
-  catch(e){out(new File([html],'picked-list.html',{type:'text/html'}))}}
-/* ---------- Items, Projects, Backup ---------- */
-function vItems(){return `<div class="r"><button data-a="new2">Add item</button></div><div class="w"><table><tr><th>Category<th>Item<th>Manufacturer<th>Count<th>Weight<th><th></tr>${S.items.map(i=>`<tr class="${i.hist?'h':''}"><td>${esc(i.category)}<td>${esc(i.item)}${i.hist?' (historical)':''}<td>${esc(i.mfr)}<td>${esc(i.count)}<td>${esc(i.weight)}<td>${i.photo&&S.photos[i.photo]?`<img class="t" src="${S.photos[i.photo]}">`:''}<td style="white-space:nowrap"><button class="g n" data-a="ei" data-id="${i.id}">Edit</button> <button class="g n" data-a="hi" data-id="${i.id}">${i.hist?'Restore':'Historical'}</button> <button class="g n" data-a="di" data-id="${i.id}">Delete</button></tr>`).join('')}</table></div>`}
-function vProj(){return `<div class="r"><input id="np" placeholder="New project name"><button class="n" data-a="ap">Add</button></div>`+S.projects.map(p=>`<div class="r"><span>${esc(p.name)}</span><button class="g n" data-a="rp" data-id="${p.id}">Rename</button><button class="g n" data-a="dp" data-id="${p.id}">Delete</button></div>`).join('')}
-function vBak(){return `<p>Save a backup often. A phone can clear this app's data without warning.</p><p class="m">Last backup: ${ls('bk')||'never'}</p><div class="r"><button data-a="bk">Save a backup</button></div>
-<p class="m">Restore from a backup file (replaces everything now in the app):</p><input type="file" id="rf" accept=".json" style="width:100%">
-<p class="m">To install: on iPhone tap Share, then Add to Home Screen. On Android tap the menu, then Install app.</p>`}
-async function restore(f){if(!f)return;try{const j=JSON.parse(await f.text());if(j.v!=8)throw 0;if(!confirm('This replaces everything now in the app with the backup. Continue?'))return;
-  S.projects=j.projects;S.items=j.items;S.picks=j.picks;S.photos=j.photos;
-  await Promise.all([['projects',S.projects],['items',S.items],['picks',S.picks],['photos',Object.entries(S.photos).map(([id,data])=>({id,data}))]].map(([s,a])=>tx(s,'readwrite',t=>{const o=t.objectStore(s);o.clear();a.forEach(x=>o.put(x))})));
-  toast('Backup restored');render()}catch(e){toast('That file is not a Box Log backup')}}
+/* Email: every photo sits in the same portrait box, tall enough for 6 lines of text */
+const PW=112,PH=150,LH=25;
+const frame=src=>new Promise(ok=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=PW*2;c.height=PH*2;const g=c.getContext('2d');g.fillStyle='#eeeeee';g.fillRect(0,0,c.width,c.height);const s=Math.min(c.width/i.width,c.height/i.height),w=i.width*s,h=i.height*s;g.drawImage(i,(c.width-w)/2,(c.height-h)/2,w,h);ok(c.toDataURL('image/jpeg',.82))};i.onerror=()=>ok(null);i.src=src});
+async function emailHTML(r){const sd=range(),F='font-family:Arial,Helvetica,sans-serif;';
+  const pics=await Promise.all(r.map(k=>k.photo&&S.photos[k.photo]?frame(S.photos[k.photo]):null));
+  const box=p=>p?`<img src="${p}" width="${PW}" height="${PH}" alt="" style="display:block;width:${PW}px;height:${PH}px;border:0">`
+    :`<table width="${PW}" height="${PH}" cellpadding="0" cellspacing="0" border="0" style="width:${PW}px;height:${PH}px;border-collapse:collapse;background:#eeeeee"><tr><td align="center" valign="middle" bgcolor="#eeeeee" style="${F}font-size:12px;line-height:16px;color:#777777;text-align:center;padding:8px">No Photograph Available</td></tr></table>`;
+  return `<div style="${F}color:#222222"><h2 style="${F}margin:0 0 4px">${esc(B.proj)}</h2>${sd?`<p style="${F}margin:0 0 4px">Date: ${B.a} to ${B.b}</p>`:''}<p style="${F}margin:0 0 16px"><b>Total quantity:</b> ${fmt(total(r))}</p>`
+  +r.map((k,i)=>`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 16px"><tr><td width="${PW}" height="${PH}" valign="top" style="width:${PW}px;height:${PH}px;padding:0">${box(pics[i])}</td><td width="14" style="width:14px;padding:0"></td><td valign="top" style="${F}font-size:15px;line-height:${LH}px;color:#222222;padding:0">${[['Quantity',fmt(k.qty)],['Category',k.category],['Item',k.item],['Manufacturer',k.mfr],['Item Count',cnt(k.count,k.weight)],...(sd?[['Date',k.pDate]]:[])].map(([a,b])=>`<b>${a}:</b> ${esc(b)}`).join('<br>')}</td></tr></table>`).join('')
+  +`<hr style="border:0;border-top:1px solid #cccccc;margin:20px 0"><p style="${F}font-size:14px">For convenience, you can copy the following text directly into Excel or another spreadsheet program. Select all of it, copy it, then paste it into the first cell of an empty sheet.</p><pre style="font-family:Consolas,Menlo,monospace;font-size:12px;white-space:pre;margin:0">${esc(tsv())}</pre></div>`}
+function email(){const r=rows();if(!r.length)return toast('Nothing to send');
+  const rng=B.a==B.b?B.a:`${B.a} to ${B.b}`,subj=`${B.proj}, ${rng}`,hp=emailHTML(r);
+  try{navigator.clipboard.write([new ClipboardItem({'text/html':hp.then(h=>new Blob([h],{type:'text/html'})),'text/plain':new Blob([fixed()+'\n\n'+tsv()],{type:'text/plain'})})])
+    .then(()=>{toast('Your list is ready. Paste it into the message.');setTimeout(()=>location.href='mailto:?subject='+encodeURIComponent(subj),900)},()=>shareEmail(hp))}
+  catch(e){shareEmail(hp)}}
+async function shareEmail(hp){if(await ask('Copying is not available on this phone',`<p>You can share the list as a file instead, and then attach it to an email.</p>`,[['ok','Share as a file'],['cancel','Cancel','g']])!='ok')return;
+  out(new File([await hp],'picked-list.html',{type:'text/html'}))}
+/* ---------- Item List, Lists, Backup ---------- */
+function vItems(){const a=[...S.items].sort(itemSort);return head('Item List')+`<div class="r"><button data-a="new2">Add item</button></div>`+(a.length?wrap(`<table><tr><th>Category<th>Item<th>Manufacturer<th>Item Count<th>Item Weight<th>Photo<th></tr>${a.map(i=>`<tr class="${i.hist?'h':''}"><td>${esc(i.category)}<td>${esc(i.item)}${i.hist?' <i>(historical)</i>':''}<td>${esc(i.mfr)}<td>${esc(i.count)}<td>${esc(i.weight)}<td>${thumb(i.photo)}<td style="white-space:nowrap"><button class="g n" data-a="ei" data-id="${i.id}">Edit</button> <button class="g n" data-a="hi" data-id="${i.id}">${i.hist?'Restore':'Historical'}</button> <button class="g n" data-a="di" data-id="${i.id}">Delete</button></tr>`).join('')}</table>`):'<p class="m">No items yet.</p>')}
+const LISTS={projects:['Recipients','recipient'],categories:['Categories','category']};
+const sec=k=>{const[t,w]=LISTS[k],a=sortN(S[k]);return `<h3>${t}</h3><div class="r"><input id="n_${k}" placeholder="New ${w} name" data-k="${k}"><button class="n" data-a="add" data-k="${k}">Add</button></div>${a.length?a.map(p=>`<div class="r li"><span>${esc(p.name)}</span><button class="g n" data-a="ren" data-k="${k}" data-id="${p.id}">Rename</button><button class="g n" data-a="rem" data-k="${k}" data-id="${p.id}">Delete</button></div>`).join(''):`<p class="m">No ${t.toLowerCase()} yet.</p>`}`};
+function vLists(){return head('Lists')+sec('projects')+'<hr style="border:0;border-top:1px solid var(--line);margin:18px 0">'+sec('categories')}
+function vBak(){return head('Backup')+`<p>Everything in this app is kept only on this phone. A phone can clear it without warning, so save a backup often.</p><p class="m">Last backup: ${ls('bk')||'never'}</p>
+<div class="r"><button data-a="bk">Share</button><label class="btn g">Import<input type="file" id="rf" class="vh" accept=".zip,.json,application/zip"></label></div>
+<p class="m"><b>Share</b> makes one backup file and lets you send or save it (email, Google Drive, Dropbox and so on). <b>Import</b> loads a backup file someone sent you.</p>
+<h3>Put the app on your home screen</h3><p class="m">iPhone: tap Share, then Add to Home Screen. Android: tap the menu, then Install app.</p>`}
+const dupe=(k,n,id)=>S[k].some(p=>p.id!=id&&p.name.toLowerCase()==n.toLowerCase());
+async function addName(k){const i=$('#n_'+k),n=i.value.trim();if(!n)return;if(dupe(k,n))return toast('That name is already in the list');const p={id:uid(),name:n};S[k].push(p);await put(k,p);render();setTimeout(()=>{const e=$('#n_'+k);e&&e.focus()},0)}
+/* ---------- Zip bundle (no outside library) ---------- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=b=>{let c=~0;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return ~c>>>0};
+function zip(files){const enc=new TextEncoder(),parts=[],cd=[],d=new Date(),dt=(d.getFullYear()-1980)<<9|(d.getMonth()+1)<<5|d.getDate(),tm=d.getHours()<<11|d.getMinutes()<<5|d.getSeconds()>>1;let off=0;
+  for(const f of files){const n=enc.encode(f.name),c=crc32(f.data),L=f.data.length,h=new DataView(new ArrayBuffer(30)),e=new DataView(new ArrayBuffer(46));
+    [[0,0x04034b50,4],[4,20],[6,0x800],[8,0],[10,tm],[12,dt],[14,c,4],[18,L,4],[22,L,4],[26,n.length],[28,0]].forEach(([o,v,s])=>s?h.setUint32(o,v,true):h.setUint16(o,v,true));
+    [[0,0x02014b50,4],[4,20],[6,20],[8,0x800],[10,0],[12,tm],[14,dt],[16,c,4],[20,L,4],[24,L,4],[28,n.length],[30,0],[32,0],[34,0],[36,0],[38,0,4],[42,off,4]].forEach(([o,v,s])=>s?e.setUint32(o,v,true):e.setUint16(o,v,true));
+    parts.push(h,n,f.data);cd.push(e,n);off+=30+n.length+L}
+  const sz=cd.reduce((a,x)=>a+x.byteLength,0),z=new DataView(new ArrayBuffer(22));z.setUint32(0,0x06054b50,true);z.setUint16(8,files.length,true);z.setUint16(10,files.length,true);z.setUint32(12,sz,true);z.setUint32(16,off,true);
+  return new Blob([...parts,...cd,z],{type:'application/zip'})}
+async function unzip(buf){const v=new DataView(buf),u=new Uint8Array(buf),dec=new TextDecoder(),out={};let e=-1;
+  for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65557);i--)if(v.getUint32(i,true)==0x06054b50){e=i;break}
+  if(e<0)throw Error('not a zip');let p=v.getUint32(e+16,true);const n=v.getUint16(e+10,true);
+  for(let k=0;k<n;k++){if(v.getUint32(p,true)!=0x02014b50)throw Error('bad zip');
+    const m=v.getUint16(p+10,true),cs=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),xl=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),lo=v.getUint32(p+42,true),name=dec.decode(u.subarray(p+46,p+46+nl));p+=46+nl+xl+cl;
+    const base=name.split('/').pop();if(!base||name.includes('__MACOSX')||base.startsWith('._'))continue;
+    const ds=lo+30+v.getUint16(lo+26,true)+v.getUint16(lo+28,true),raw=u.slice(ds,ds+cs);
+    if(m==0)out[base.toLowerCase()]=raw;else if(m==8)out[base.toLowerCase()]=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer())}
+  return out}
+const csvQ=v=>{v=String(v??'');return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function parseCSV(t){t=t.replace(/^﻿/,'');const R=[];let r=[],f='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c=='"')q=true;else if(c==','){r.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;r.push(f);R.push(r);r=[];f=''}else f+=c}
+  if(f||r.length){r.push(f);R.push(r)}const rows=R.filter(r=>r.some(x=>x.trim()));if(!rows.length)return[];
+  const h=rows[0].map(x=>x.trim().toLowerCase());return rows.slice(1).map(r=>Object.fromEntries(h.map((k,i)=>[k,(r[i]??'').trim()])))}
+const EXT={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'},MIME={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif'};
+const photoName=id=>{const s=S.photos[id];return id&&s?`${id}.${EXT[s.slice(5,s.indexOf(';'))]||'jpg'}`:''};
+const pad=n=>String(n).padStart(2,'0');
+function normDate(s){s=String(s||'').trim();let m;if(m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))return `${m[1]}-${pad(m[2])}-${pad(m[3])}`;
+  if(m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/))return `${m[3].length==2?'20'+m[3]:m[3]}-${pad(m[1])}-${pad(m[2])}`;
+  const d=new Date(s);return isNaN(d)?'':d.toLocaleDateString('en-CA')}
+function normTime(s){s=String(s||'').trim();let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if(m){let h=+m[4];if(m[7]){h=h%12+(/pm/i.test(m[7])?12:0)}const d=new Date(+(m[3].length==2?'20'+m[3]:m[3]),m[1]-1,+m[2],h,+m[5],+(m[6]||0));if(!isNaN(d))return d.toISOString()}
+  const d=new Date(s);return isNaN(d)?'':d.toISOString()}
+function bundle(){const enc=new TextEncoder(),csv=(h,r)=>({data:enc.encode('﻿'+[h,...r].map(x=>x.map(csvQ).join(',')).join('\r\n')+'\r\n')});
+  const files=[{name:'recipients.csv',...csv(['ID','Name'],S.projects.map(p=>[p.id,p.name]))},
+    {name:'categories.csv',...csv(['ID','Name'],S.categories.map(p=>[p.id,p.name]))},
+    {name:'items.csv',...csv(['ID','Category','Item','Manufacturer','Item Count','Item Weight','Photo','Historical'],S.items.map(i=>[i.id,i.category,i.item,i.mfr,i.count,i.weight,photoName(i.photo),i.hist?'Yes':'No']))},
+    {name:'picks.csv',...csv(['ID','Recipient','Category','Item','Manufacturer','Item Count','Item Weight','Quantity','Date','Saved At','Photo'],S.picks.map(k=>[k.id,k.project,k.category,k.item,k.mfr,k.count,k.weight,fmt(k.qty),k.pDate,k.savedAt,photoName(k.photo)]))},
+    {name:'photos/',data:new Uint8Array(0)}];
+  for(const id in S.photos){const s=S.photos[id];files.push({name:'photos/'+photoName(id),data:Uint8Array.from(atob(s.slice(s.indexOf(',')+1)),c=>c.charCodeAt(0))})}
+  return new File([zip(files)],`box-log-backup-${today()}.zip`,{type:'application/zip'})}
+const toURL=(b,type)=>new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(new Blob([b],{type}))});
+async function fromZip(buf){const z=await unzip(buf),dec=new TextDecoder(),tbl=n=>z[n]?parseCSV(dec.decode(z[n])):[];
+  if(!z['items.csv']&&!z['picks.csv']&&!z['recipients.csv'])throw Error('not a backup');
+  const photos={},ref=n=>{n=String(n||'').trim();if(!n)return null;const k=n.split('/').pop().toLowerCase(),id=n.split('/').pop().replace(/\.[^.]+$/,'');if(!z[k])return null;photos[id]=k;return id};
+  const nm=r=>({id:r.id||uid(),name:r.name}),yes=s=>/^(y|yes|true|1|x)$/i.test(String(s).trim());
+  const D={recipients:tbl('recipients.csv').filter(r=>r.name).map(nm),categories:tbl('categories.csv').filter(r=>r.name).map(nm),
+    items:tbl('items.csv').filter(r=>r.item||r.category).map(r=>({id:r.id||uid(),category:r.category,item:r.item,mfr:r.manufacturer,count:r['item count'],weight:r['item weight'],photo:ref(r.photo),hist:yes(r.historical)})),
+    picks:tbl('picks.csv').filter(r=>r.item||r.recipient).map(r=>({id:r.id||uid(),project:r.recipient,category:r.category,item:r.item,mfr:r.manufacturer,count:r['item count'],weight:r['item weight'],qty:parseFloat(r.quantity)||1,pDate:normDate(r.date)||today(),savedAt:normTime(r['saved at'])||new Date().toISOString(),photo:ref(r.photo)})),photos:{}};
+  for(const id in photos){const k=photos[id],t=MIME[k.split('.').pop()]||'image/jpeg';D.photos[id]=await toURL(z[k],t)}
+  return D}
+function fromJSON(j){if(!j||!Array.isArray(j.items))throw Error('not a backup');const cats=j.categories||[...new Set(j.items.map(i=>i.category).filter(Boolean))].map(n=>({id:uid(),name:n}));
+  return {recipients:j.projects||j.recipients||[],categories:cats,items:j.items,picks:j.picks||[],photos:j.photos||{}}}
+async function importFile(f){if(!f)return;let D;
+  try{D=/\.json$/i.test(f.name)?fromJSON(JSON.parse(await f.text())):await fromZip(await f.arrayBuffer())}catch(e){return toast('That file is not a Box Log backup')}
+  const c=await ask('Import a backup',`<p>This backup has ${D.items.length} items, ${D.picks.length} picks, ${D.recipients.length} recipients and ${D.categories.length} categories.</p>
+<p><b>Replace:</b> remove everything now in this app and use the backup instead.</p><p><b>Merge:</b> keep what is in this app and add the backup to it. Anything that is in both is updated from the backup.</p>`,[['replace','Replace'],['merge','Merge'],['cancel','Cancel','g']]);
+  if(c!='replace'&&c!='merge')return;const cl=c=='replace';
+  await putAll('projects',D.recipients,cl);await putAll('categories',D.categories,cl);await putAll('items',D.items,cl);await putAll('picks',D.picks,cl);
+  await putAll('photos',Object.entries(D.photos).map(([id,data])=>({id,data})),cl);
+  await load();toast(cl?'Backup loaded':'Backup merged');render()}
 /* ---------- Events ---------- */
 document.addEventListener('click',async e=>{const t=e.target.closest('[data-go],[data-a],[data-sel]');if(!t)return;const D=t.dataset,id=D.id;
-  if(D.go)return go(D.go);
-  if(D.sel){P.sel=D.sel;$('#g').innerHTML=grid();return upd()}
+  if(D.go){if($('#dlg').open)$('#dlg').close();return go(D.go)}
+  if(D.sel){P.sel=D.sel;return drawGrid()}
   switch(D.a){
+  case'help':{const[h,b]=HELP[tab];ask('How to use: '+h,b,[['ok','OK']]);break}
   case'mn':case'pl':{const q=parseFloat(P.qty)||1;if(D.a=='pl')P.qty=fmt(Math.floor(q)+1);else if(Math.ceil(q)-1>=1)P.qty=fmt(Math.ceil(q)-1);$('#qt').value=P.qty;upd();break}
-  case'save':{const pr=S.projects.find(p=>p.id==P.proj),it=S.items.find(i=>i.id==P.sel);if(!pr||!it)break;
+  case'save':{const pr=S.projects.find(p=>p.id==P.proj),it=S.items.find(i=>i.id==P.sel);if(!pr||!it||!(+P.qty>0))break;
     const o={id:uid(),savedAt:new Date().toISOString(),pDate:P.date,project:pr.name,category:it.category,item:it.item,mfr:it.mfr,count:it.count,weight:it.weight,photo:it.photo||null,qty:+P.qty};
     S.picks.push(o);await put('picks',o);ls('lp',P.proj);P.sel=null;P.qty='1';P.only=null;setDate();toast('Saved');render();break}
   case'new':dItem(null,P.q.trim());break;
   case'new2':dItem(null);break;
   case'cx':$('#dlg').close();break;
+  case'ac':{const n=(prompt('New category name:')||'').trim();if(!n)break;let c=S.categories.find(c=>c.name.toLowerCase()==n.toLowerCase());
+    if(!c){c={id:uid(),name:n};S.categories.push(c);await put('categories',c)}const s=$('#fc');if(![...s.options].some(o=>o.value==c.name))s.add(new Option(c.name,c.name));s.value=c.name;break}
   case'ei':dItem(S.items.find(i=>i.id==id));break;
   case'hi':{const i=S.items.find(x=>x.id==id);i.hist=!i.hist;await put('items',i);render();break}
-  case'di':{if(!confirm('Delete this item? Past picks will keep their details but lose the photo.'))break;const i=S.items.find(x=>x.id==id);S.items=S.items.filter(x=>x!=i);await del('items',id);if(i.photo)await dropPhoto(i.photo);render();break}
-  case'ap':{const n=$('#np').value.trim();if(!n)break;const p={id:uid(),name:n};S.projects.push(p);await put('projects',p);render();break}
-  case'rp':{const p=S.projects.find(x=>x.id==id),n=(prompt('Project name:',p.name)||'').trim();if(n){p.name=n;await put('projects',p);render()}break}
-  case'dp':{if(!confirm('Delete this project? Past picks are not changed.'))break;S.projects=S.projects.filter(x=>x.id!=id);await del('projects',id);if(P.proj==id)P.proj='';render();break}
-  case'ek':{const k=S.picks.find(x=>x.id==id),v=parseFloat(prompt('Quantity picked:',fmt(k.qty)));if(v>0){k.qty=v;await put('picks',k);render()}break}
+  case'di':{const i=S.items.find(x=>x.id==id);if(!confirm('Delete this item?'+(i.photo?'\n\nPast picks will keep their details but lose the photo.':'\n\nPast picks keep their details.')))break;
+    S.items=S.items.filter(x=>x!=i);await del('items',id);if(i.photo)await dropPhoto(i.photo);render();break}
+  case'add':addName(D.k);break;
+  case'ren':{const p=S[D.k].find(x=>x.id==id),n=(prompt('New name:',p.name)||'').trim();if(!n||n==p.name)break;if(dupe(D.k,n,id)){toast('That name is already in the list');break}p.name=n;await put(D.k,p);render();break}
+  case'rem':{const w=LISTS[D.k][1];if(!confirm(`Delete this ${w}?\n\nItems and picks already saved are not changed.`))break;S[D.k]=S[D.k].filter(x=>x.id!=id);await del(D.k,id);if(D.k=='projects'&&P.proj==id)P.proj='';render();break}
+  case'ek':{const k=S.picks.find(x=>x.id==id),names=[...new Set([...sortN(S.projects).map(p=>p.name),k.project])];
+    const r=await ask('Change this pick',`<p class="m">${esc(k.item)}, ${esc(k.mfr)}</p><label>Quantity</label><input id="eq" inputmode="decimal" value="${fmt(k.qty)}"><label>Recipient</label><select id="er">${names.map(n=>`<option value="${esc(n)}" ${n==k.project?'selected':''}>${esc(n)}</option>`).join('')}</select><label>Date</label><input type="date" id="ed" value="${k.pDate}">`,[['save','Save'],['cancel','Cancel','g']]);
+    if(r!='save')break;const q=parseFloat($('#eq').value);if(!(q>0)){toast('The quantity must be more than 0');break}
+    k.qty=q;k.project=$('#er').value;k.pDate=$('#ed').value||k.pDate;await put('picks',k);render();break}
   case'dk':{if(!confirm('Delete this pick?'))break;S.picks=S.picks.filter(x=>x.id!=id);await del('picks',id);render();break}
   case'cs':copy(tsv());break;
   case'cf':copy(fixed());break;
   case'em':email();break;
-  case'bk':{await out(new File([JSON.stringify({v:8,projects:S.projects,items:S.items,picks:S.picks,photos:S.photos})],'box-log-backup-'+today()+'.json',{type:'application/json'}));ls('bk',today());render();break}
+  case'bk':{if(await out(bundle())){ls('bk',today());render()}break}
   }});
+document.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.id&&e.target.id.startsWith('n_')){e.preventDefault();addName(e.target.dataset.k)}});
 document.addEventListener('input',e=>{const t=e.target;
-  if(t.id=='sq'){P.q=t.value;P.only=null;P.qty='1';$('#qt').value='1';$('#g').innerHTML=grid();upd()}
+  if(t.id=='sq'){P.q=t.value;P.only=null;P.qty='1';$('#qt').value='1';drawGrid()}
   else if(t.id=='qt'){P.qty=t.value;upd()}
-  else if(t.name=='mfr'){const v=t.value.toLowerCase();$('#ml').innerHTML=!v?'':[...new Set(S.items.map(i=>i.mfr))].filter(m=>m.toLowerCase().startsWith(v)).map(m=>`<option value="${esc(m)}">`).join('')}});
-document.addEventListener('focusin',e=>{if(e.target.id=='sq'&&P.only){P.only=null;$('#g').innerHTML=grid();upd()}});
+  else if(t.name=='mfr'){const v=t.value.toLowerCase();$('#ml').innerHTML=!v?'':mfrs().filter(m=>m.toLowerCase().startsWith(v)).map(m=>`<option value="${esc(m)}">`).join('')}});
+document.addEventListener('focusin',e=>{if(e.target.id=='sq'&&P.only){P.only=null;drawGrid()}});
 document.addEventListener('change',e=>{const t=e.target;
-  if(t.id=='pj'){if(t.value=='+')return go('proj');P.proj=t.value;upd()}
+  if(t.id=='pj'){if(t.value=='+')return go('lists');P.proj=t.value;render()}
   else if(t.id=='pd')P.date=t.value||today();
   else if(t.id=='bp'){B.proj=t.value;render()}
   else if(t.id=='ba'){B.a=t.value||today();if(B.a>B.b)B.b=B.a;render()}
   else if(t.id=='bb'){B.b=t.value||today();if(B.b<B.a)B.a=B.b;render()}
-  else if(t.id=='rf')restore(t.files[0])});
+  else if(t.id=='rf'){const f=t.files[0];t.value='';importFile(f)}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState!='visible')return;if(P.date==P.dd)setDate();if(tab=='box')B.a=B.b=today();if(tab=='pick'||tab=='box')render()});
-(async()=>{db=await open();for(const s of ST){const a=await all(s);if(s=='photos')a.forEach(p=>S.photos[p.id]=p.data);else S[s]=a}
+(async()=>{db=await open();await load();
+  if(!ls('cat9')){const have=new Set(S.categories.map(c=>c.name.toLowerCase())),add=[];
+    for(const i of S.items){const n=String(i.category||'').trim();if(n&&!have.has(n.toLowerCase())){have.add(n.toLowerCase());add.push({id:uid(),name:n})}}
+    if(add.length){await putAll('categories',add);S.categories.push(...add)}ls('cat9','1')}
   P.proj=ls('lp');setDate();render();
   if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})})();
 </script></body></html>
