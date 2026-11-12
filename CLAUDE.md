@@ -8,3 +8,9 @@
 
 ## Saved suggestions
 - `SUGGESTIONS.md` holds a review list the owner put on hold. When they ask for "the list" or "the suggestions", start from that file. Remove items from it as they are done.
+
+## Keeping users' data valid
+- Every update must keep the data already on users' phones working.
+- The database's `meta` store records the app version that last wrote the data (`checkData()` in index.html). Backups include `version.txt`.
+- If a change would make existing data invalid, add a step to `MIGRATIONS` that fixes the existing records. **Tell the owner and wait for approval before committing any migration step.**
+- Database upgrades (`indexedDB.open` version) may only add stores, never change or remove records.
